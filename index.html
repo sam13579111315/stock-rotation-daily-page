@@ -6,26 +6,63 @@
 <title>持倉總結 2026-08-05</title>
 <style>
   body { font-family: "Microsoft JhengHei", "PingFang TC", sans-serif; background:#f0f2f5; margin:0; padding:16px; }
-  h1 { font-size:20px; color:#1a237e; margin:4px 0 12px; }
-  .card { background:#fff; border-radius:10px; padding:14px; box-shadow:0 1px 4px rgba(0,0,0,.12); }
+  h1 { font-size:20px; color:#1a237e; margin:4px 0 8px; }
+  .card { background:#fff; border-radius:10px; padding:14px; box-shadow:0 1px 4px rgba(0,0,0,.12); margin-bottom:12px; }
   table { width:100%; border-collapse:collapse; font-size:14px; }
-  th { background:#e8eaf6; text-align:left; padding:8px 6px; }
-  td { padding:8px 6px; border-bottom:1px solid #eee; }
+  th { background:#e8eaf6; text-align:left; padding:8px 5px; }
+  td { padding:8px 5px; border-bottom:1px solid #eee; }
   .pos { color:#2e7d32; font-weight:bold; }
   .neg { color:#c62828; font-weight:bold; }
   .total { margin-top:10px; font-size:16px; font-weight:bold; }
-  .note { color:#888; font-size:12px; margin-top:12px; }
+  .note { color:#888; font-size:12px; margin-top:10px; }
+  input { font-size:18px; padding:6px 10px; width:180px; border:1px solid #ccc; border-radius:6px; }
+  label { font-size:15px; font-weight:bold; }
+  .cap { color:#1a237e; font-weight:bold; }
 </style>
 </head>
 <body>
 <div class="card">
   <h1>📊 持倉總結 2026-08-05</h1>
-  <table>
-    <tr><th>Ticker</th><th>Type</th><th>方向</th><th>股數</th><th>入場價</th><th>現價</th><th>盈虧%</th></tr>
-    <tr><td><b>QQQ</b></td><td>ETF</td><td>LONG</td><td>9</td><td>$687.99</td><td>$721.38</td><td class='pos'>+4.85%</td></tr>
-  </table>
-  <div class="total pos">💰 總盈虧: $+300.51（+4.85%）</div>
-  <div class="note">基準本金 $10,000｜股數按引擎 $10k 規模｜ETF+StockRot+BIL 策略自動生成</div>
+  <label>💰 真實本金 $ <input type="number" id="cap" min="0" step="100" placeholder="例如 50000"></label>
+  <span class="note">（輸入後自動計每隻要買幾多股，向下取整）</span>
 </div>
+<div class="card">
+  <table>
+    <tr><th>Ticker</th><th>Type</th><th>方向</th><th>股數</th><th>現價</th><th>市值</th><th>盈虧%</th><th>佔總倉%</th><th>真倉股數</th></tr>
+    <tr data-price='295.3500' data-pct='64.9770'><td><b>QQQM</b></td><td>ETF</td><td>LONG</td><td class='sh'>22</td><td>$295.35</td><td>$6,498</td><td class='pos'>+4.26%</td><td class='pct'>65.0%</td><td class='real'>-</td></tr>
+    <tr data-price='0' data-pct='35.0230' data-cash='1'><td><b>💰 現金/備用</b></td><td>Cash</td><td>-</td><td>-</td><td>-</td><td>$+3,502</td><td>-</td><td class='pct'>35.0%</td><td class='real'>-</td></tr>
+  </table>
+  <div class="total pos">💼 總盈虧: $+266（+4.26%）｜基準 $10,000 = 100%</div>
+  <div class="note">盈虧% 按策略引擎價（QQQ/GLD）計；股數已換算為 QQQM/GLDM 顯示｜基準本金 $10,000｜引擎: ETF+StockRot+BIL</div>
+</div>
+<script>
+  const rows = document.querySelectorAll('tr[data-price]');
+  const cashRow = document.querySelector('tr[data-cash]');
+  const inp = document.getElementById('cap');
+  inp.addEventListener('input', () => {
+    const cap = parseFloat(inp.value);
+    if (!cap || cap <= 0) {
+      rows.forEach(r => {
+        const t = r.querySelector('.real');
+        if (t) t.textContent = '-';
+      });
+      return;
+    }
+    rows.forEach(r => {
+      const price = parseFloat(r.dataset.price);
+      const pct = parseFloat(r.dataset.pct);
+      const t = r.querySelector('.real');
+      if (!t) return;
+      if (r.dataset.cash) {
+        t.textContent = '$' + Math.round(cap * pct / 100).toLocaleString();
+        return;
+      }
+      const amount = cap * pct / 100;
+      const shares = Math.floor(amount / price);
+      t.textContent = shares > 0 ? shares + ' 股' : '不足1股';
+      t.style.color = shares > 0 ? '#1a237e' : '#c62828';
+    });
+  });
+</script>
 </body>
 </html>
